@@ -184,6 +184,24 @@ def main():
         q["queue_log_sample"] = ch.queue_log
         ch_stats_list.append(q)
 
+    print("\n  Q-Digest Adaptive Filter Thresholds:")
+    print(f"  {'CH':>2} {'n_samp':>8} {'adaptive':>9} "
+          f"{'mag_thresh':>11} {'az_thresh':>10} "
+          f"{'mag_Q50':>8} {'mag_Q90':>8} "
+          f"{'az_Q50':>8} {'az_Q90':>8}")
+    print("  " + "-" * 82)
+    for ch in cluster_heads:
+        ft = ch.pre_filter_thresholds()
+        print(f"  CH{ch.cluster_id:>1}  "
+              f"{ft['n_samples']:>8d} "
+              f"{'yes' if ft['adaptive'] else 'no':>9} "
+              f"{ft['mag_max_thresh']:>11.4f} "
+              f"{ft['az_std_thresh']:>10.4f} "
+              f"{ft.get('mag_max_q50', float('nan')):>8.4f} "
+              f"{ft.get('mag_max_q90', float('nan')):>8.4f} "
+              f"{ft.get('az_std_q50', float('nan')):>8.4f} "
+              f"{ft.get('az_std_q90', float('nan')):>8.4f}")
+
     print("\n  PDR per Cluster Head:")
     pdr_per_ch = []
     for i in range(5):
@@ -224,6 +242,10 @@ def main():
             {"cluster_id": q["cluster_id"],
              "log": q["queue_log_sample"][:2000]}
             for q in ch_stats_list
+        ],
+        "qdigest_filter_stats": [
+            ch.pre_filter_thresholds()
+            for ch in cluster_heads
         ],
     }
     with open(RESULTS, "w") as f:
